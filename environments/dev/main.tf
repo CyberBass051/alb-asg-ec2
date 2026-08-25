@@ -27,13 +27,12 @@ module "vpc" {
   }
 }
 
-# module "security" {
-#  source = "../../modules/security"
-
-#  vpc_id       = module.vpc.vpc_id
-#  project_name = "alb-project"
-#  vpc_cidr     = "10.32.0.0/16"
-# }
+module "security" {
+  source       = "../../modules/security"
+  vpc_id       = module.vpc.vpc_id
+  project_name = "alb-project"
+  vpc_cidr     = "10.32.0.0/16"
+}
 
 # module "alb" {
 #  source = "../../modules/alb"
