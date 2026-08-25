@@ -71,7 +71,7 @@ locals {
     }
   ]...)
 }
-
+# trivy:ignore:AWS-0164 -- Public subnet is exclusively for the internet-facing ALB, which requires a public IP to receive traffic. No compute (EC2/ECS) is deployed here.
 resource "aws_subnet" "this" {
   for_each                = local.subnets
   vpc_id                  = aws_vpc.alb_vpc.id
