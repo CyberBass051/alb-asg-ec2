@@ -4,7 +4,6 @@ data "aws_caller_identity" "current" {}
 # ===============
 data "aws_elb_service_account" "main" {}
 
-# trivy:ignore:AWS-0132 -- SSE-S3 sufficient for disposable dev access-log bucket, same reasoning as CKV_AWS_145
 resource "aws_s3_bucket" "alb_logs" {
   bucket        = "alb-project-logs-dev-${data.aws_caller_identity.current.account_id}-051"
   force_destroy = true
@@ -25,6 +24,7 @@ resource "aws_s3_bucket_versioning" "alb_logs" {
   }
 }
 
+# trivy:ignore:AWS-0132 -- SSE-S3 sufficient for disposable dev access-log bucket, same reasoning as CKV_AWS_145
 resource "aws_s3_bucket_server_side_encryption_configuration" "alb_logs" {
   bucket = aws_s3_bucket.alb_logs.id
 
