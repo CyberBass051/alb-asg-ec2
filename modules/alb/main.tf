@@ -4,6 +4,7 @@ data "aws_caller_identity" "current" {}
 # ===============
 data "aws_elb_service_account" "main" {}
 
+# trivy:ignore:AWS-0132 -- SSE-S3 sufficient for disposable dev access-log bucket, same reasoning as CKV_AWS_145
 resource "aws_s3_bucket" "alb_logs" {
   bucket        = "alb-project-logs-dev-${data.aws_caller_identity.current.account_id}-051"
   force_destroy = true
@@ -94,6 +95,7 @@ resource "aws_lb_target_group" "web_tg" {
 # =====================================
 # Application load balancer & Listeners
 # =====================================
+# trivy:ignore:AWS-0053 -- Intentionally internet-facing ALB, entry point for public web traffic
 resource "aws_lb" "main_alb" {
   name               = "${var.project_name}-main-web-alb"
   internal           = false
