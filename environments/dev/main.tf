@@ -34,16 +34,15 @@ module "security" {
   vpc_cidr     = "10.32.0.0/16"
 }
 
-# module "alb" {
-#  source = "../../modules/alb"
-
-#  vpc_id             = module.vpc.vpc_id
-#  project_name       = "alb-project"
-#  owner              = "Pietro"
-#   web_subnet_ids     = values(module.vpc.web_subnet_ids)
-#   alb_sg_id          = module.security.alb_sg_id
-# }
-# 
+module "alb" {
+  source = "../../modules/alb"
+  vpc_id             = module.vpc.vpc_id
+  project_name       = "alb-project"
+  owner              = "Pietro"
+  web_subnet_ids     = values(module.vpc.web_subnet_ids)
+  alb_sg_id          = module.security.alb_sg_id
+}
+ 
 # module "dns_acm" {
 #   source = "../../modules/dns_acm"
 # 
