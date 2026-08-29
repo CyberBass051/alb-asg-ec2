@@ -126,7 +126,7 @@ resource "aws_route_table_association" "this" {
 
 resource "aws_route" "public_igw" {
   for_each               = { for k, v in var.route_config : k => v if v.public }
-  route_table_id         = aws_route_table.this[each.key]
+  route_table_id         = aws_route_table.this[each.key].id
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = aws_internet_gateway.alb_igw.id
 }
@@ -148,7 +148,7 @@ resource "aws_eip" "nat" {
 
 resource "aws_nat_gateway" "nat_gw" {
   allocation_id = aws_eip.nat.id
-  subnet_id     = aws_subnet.this["web"].id
+  subnet_id     = aws_subnet.this["web-us-east-1a"].id
 
   tags = {
     Name      = "${var.project_name}-nat-gw"
