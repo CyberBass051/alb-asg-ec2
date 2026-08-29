@@ -2,9 +2,9 @@ data "aws_caller_identity" "current" {}
 
 data "aws_iam_policy_document" "kms_flow_logs" {
   statement {
-    sid    = "EnableRootAccountAccess"
-    effect = "Allow"
-    actions = ["kms:*"]
+    sid       = "EnableRootAccountAccess"
+    effect    = "Allow"
+    actions   = ["kms:*"]
     resources = ["*"]
 
     principals {
@@ -124,6 +124,46 @@ resource "aws_route_table_association" "this" {
   route_table_id = aws_route_table.this[each.value.tier].id
 }
 
+resource "aws_route" "public_igw" {
+  for_each               = { for k, v in var.route_config : k => v if v.public }
+  route_table_id         = aws_route_table.this[each.key].id
+  destination_cidr_block = "0.0.0.0/0"
+  gateway_id             = aws_internet_gateway.alb_igw.id
+}
+
+# ========================
+# Elastic IP & NAT Gateway
+# ========================
+resource "aws_eip" "nat" {
+  domain     = "vpc"
+  depends_on = [aws_internet_gateway.alb_igw]
+
+  tags = {
+    Name      = "${var.project_name}-eip"
+    Project   = var.project_name
+    Owner     = var.owner
+    ManagedBy = "terraform"
+  }
+}
+
+resource "aws_nat_gateway" "nat_gw" {
+  allocation_id = aws_eip.nat.id
+  subnet_id     = aws_subnet.this["web-us-east-1a"].id
+
+  tags = {
+    Name      = "${var.project_name}-nat-gw"
+    Project   = var.project_name
+    Owner     = var.owner
+    ManagedBy = "terraform"
+  }
+}
+
+resource "aws_route" "private_nat" {
+  route_table_id         = aws_route_table.this["app"].id
+  destination_cidr_block = "0.0.0.0/0"
+  nat_gateway_id         = aws_nat_gateway.nat_gw.id
+}
+
 # =============
 # VPC Flow Logs
 # =============
@@ -165,11 +205,11 @@ resource "aws_iam_role" "flow_logs" {
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Effect    = "Allow"
+      Effect = "Allow"
       Principal = {
         Service = "vpc-flow-logs.amazonaws.com"
       }
-      Action    = "sts:AssumeRole"
+      Action = "sts:AssumeRole"
     }]
   })
 }
@@ -182,9 +222,9 @@ resource "aws_iam_role_policy" "flow_logs" {
     Version = "2012-10-17"
     Statement = [
       {
-        Sid      = "LogsManager"
-        Effect   = "Allow"
-        Action   = [
+        Sid    = "LogsManager"
+        Effect = "Allow"
+        Action = [
           "logs:CreateLogStream",
           "logs:PutLogEvents",
           "logs:DescribeLogStreams",
@@ -199,15 +239,15 @@ resource "aws_iam_role_policy" "flow_logs" {
 resource "aws_flow_log" "vpc_flow_logs" {
   vpc_id               = aws_vpc.alb_vpc.id
   traffic_type         = "ALL"
-  log_destination      = aws_cloudwatch_log_group.vpc_flow_logs.arn 
+  log_destination      = aws_cloudwatch_log_group.vpc_flow_logs.arn
   log_destination_type = "cloud-watch-logs"
-  iam_role_arn         = aws_iam_role.flow_logs.arn            
+  iam_role_arn         = aws_iam_role.flow_logs.arn
 }
 
 resource "aws_default_security_group" "alb_vpc_default" {
   vpc_id = aws_vpc.alb_vpc.id
 
-  
+
   tags = {
     Name      = "${var.project_name}-default-sg-locked"
     Project   = var.project_name
