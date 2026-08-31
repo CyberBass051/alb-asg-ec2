@@ -22,12 +22,26 @@ resource "aws_s3_bucket_versioning" "waf_logs" {
   }
 }
 
+resource "aws_kms_key" "waf_logs" {
+  description             = "CMK for WAF logs bucket encryption"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+
+  tags = {
+    Name      = "${var.project_name}"
+    Project   = var.project_name
+    Owner     = var.owner
+    ManagedBy = "terraform"
+  }
+}
+
 resource "aws_s3_bucket_server_side_encryption_configuration" "waf_logs" {
   bucket = aws_s3_bucket.waf_logs.id
 
   rule {
     apply_server_side_encryption_by_default {
-      sse_algorithm = "aws:kms"
+      sse_algorithm     = "aws:kms"
+      kms_master_key_id = aws_kms_key.waf_logs.id
     }
     bucket_key_enabled = true
   }
