@@ -42,7 +42,6 @@ module "alb" {
   web_subnet_ids = values(module.vpc.web_subnet_ids)
   alb_sg_id      = module.security.alb_sg_id
 }
-
 module "dns_acm" {
   source = "../../modules/dns_acm"
 
@@ -51,4 +50,11 @@ module "dns_acm" {
   domain_name         = "cyberbass.live"
   lb_target_group_arn = module.alb.lb_target_group_arn
   lb_arn              = module.alb.lb_arn
+}
+
+module "waf" {
+  source       = "../../modules/waf"
+  project_name = "alb-project"
+  owner        = "Pietro"
+  alb_arn      = module.alb.lb_arn
 }
