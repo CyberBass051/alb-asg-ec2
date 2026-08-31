@@ -26,7 +26,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "waf_logs" {
   bucket = aws_s3_bucket.waf_logs.id
 
   rule {
-    apply_server_side_encryption {
+    apply_server_side_encryption_by_default {
       sse_algorithm = "aws:kms"
     }
     bucket_key_enabled = true
