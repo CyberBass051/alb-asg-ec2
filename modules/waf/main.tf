@@ -33,7 +33,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "waf_logs" {
   }
 }
 
-resource "aws_s3_bucket_block_public_access" "waf_logs" {
+resource "aws_s3_bucket_public_access_block" "waf_logs" {
   bucket = aws_s3_bucket.waf_logs.id
 
   block_public_acls       = true
