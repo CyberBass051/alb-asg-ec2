@@ -26,6 +26,7 @@ resource "aws_kms_key" "waf_logs" {
   description             = "CMK for WAF logs bucket encryption"
   deletion_window_in_days = 7
   enable_key_rotation     = true
+  policy                  = data.aws_iam_policy_document.waf_logs_kms.json
 
   tags = {
     Name      = "${var.project_name}"
@@ -34,6 +35,44 @@ resource "aws_kms_key" "waf_logs" {
     ManagedBy = "terraform"
   }
 }
+
+data "aws_iam_policy_document" "waf_logs_kms" {
+  statement {
+    sid     = "EnableRootAccountAccess"
+    effect  = "Allow"
+    actions = ["kms:Create*", "kms:Describe*", "kms:List*", "kms:Put*", "kms:Update*", "kms:Revoke*", "kms:Disable*", "kms:Get*", "kms:Delete*", "kms:TagResource", "kms:UntagResource", "kms:ScheduleKeyDeletion", "kms:CancelKeyDeletion"]
+    resources = ["*"]
+  
+    principals {
+      type        = "AWS"
+      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
+    }
+  }
+
+  statement {
+    sid     = "AllowWAFLogDeliveryEncryption"
+    effect  = "Allow"
+    actions = [
+      "kms:Encrypt*",
+      "kms:Decrypt*",
+      "kms:ReEncrypt*",
+      "kms:GenerateDataKey*",
+      "kms:Describe*"
+    ]
+    resources = ["*"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["delivery.logs.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_kms_alias" "waf_logs" {
+  name          = "alias/${var.project_name}-waf-logs"
+  target_key_id = aws_kms_key.waf_logs.key_id
+}
+
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "waf_logs" {
   bucket = aws_s3_bucket.waf_logs.id
