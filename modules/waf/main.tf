@@ -1,3 +1,47 @@
+data "aws_caller_identity" "current" {}
+# ====================
+# WAF LOGS BUCKET
+# ====================
+resource "aws_s3_bucket" "waf_logs" {
+  bucket        = "aws-waf-logs-${data.aws_caller_identity.current.account_id}"
+  force_destroy = true
+
+  tags = {
+    Name      = "${var.project_name}-waf-logs"
+    Project   = var.project_name
+    Owner     = var.owner
+    ManagedBy = "terraform"
+  }
+}
+
+resource "aws_s3_bucket_versioning" "waf_logs" {
+  bucket = aws_s3_bucket.waf_logs.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "waf_logs" {
+  bucket = aws_s3_bucket.waf_logs.id
+
+  rule {
+    apply_server_side_encryption {
+      sse_algorithm = "aws:kms"
+    }
+    bucket_key_enabled = true
+  }
+}
+
+resource "aws_s3_bucket_block_public_access" "waf_logs" {
+  bucket = aws_s3_bucket.waf_logs.id
+
+  block_public_acls       = true
+  ignore_public_acls      = true
+  block_public_policy     = true
+  restrict_public_buckets = true
+}
+
 # ====================
 # WAF Web ACL
 # ====================
@@ -97,4 +141,12 @@ resource "aws_wafv2_web_acl" "alb_waf" {
 resource "aws_wafv2_web_acl_association" "alb" {
   resource_arn = var.alb_arn
   web_acl_arn  = aws_wafv2_web_acl.alb_waf.arn
+}
+
+# =======================
+# WAF Logging Config
+# =======================
+resource "aws_wafv2_web_acl_logging_configuration" "alb_waf" {
+  resource_arn            = aws_wafv2_web_acl.alb_waf.arn
+  log_destination_configs = [aws_s3_bucket.waf_logs.arn]
 }
