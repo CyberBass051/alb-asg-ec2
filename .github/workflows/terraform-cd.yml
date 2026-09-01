@@ -1,0 +1,59 @@
+name: Terraform CD
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'environments/dev/**'
+      - 'environments/dev/backend.hcl'
+
+permissions:
+  id-token: write
+  contents: read
+
+env: 
+  TF_VERSION: '1.9.0'
+  AWS_REGION: 'us-east-1'
+  WORKING_DIR: 'environments/dev'
+
+jobs:
+  terraform-cd:
+    name: Terraform Apply (CD)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume:
+            arn:aws:iam::221717898536/alb-project-GitHubActions-TerraformCD
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Init
+        id: init
+        run: terraform init -backend-config=backend.hcl
+        working-directory: ${{ env.WORKING_DIR }}
+
+      - name: Terraform Validate
+        id: validate
+        run: terraform validate
+        working-directory: ${{ env.WORKING_DIR }}
+
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan -no-color -out=tfplan
+        working-directory: ${{ env.WORKING_DIR }}
+
+      - name: Terraform Apply
+        id: apply
+        run: terraform apply -auto-approve tfplan
+        working-directory: ${{ env.WORKING_DIR }}
