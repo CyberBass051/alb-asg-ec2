@@ -78,4 +78,3 @@ jobs:
         run: terraform plan -no-color -out=tfplan
         working-directory: ${{ env.WORKING_DIR }}
 
-# hello
