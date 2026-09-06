@@ -38,11 +38,11 @@ resource "aws_kms_key" "waf_logs" {
 
 data "aws_iam_policy_document" "waf_logs_kms" {
   statement {
-    sid     = "EnableRootAccountAccess"
-    effect  = "Allow"
-    actions = ["kms:Create*", "kms:Describe*", "kms:List*", "kms:Put*", "kms:Update*", "kms:Revoke*", "kms:Disable*", "kms:Get*", "kms:Delete*", "kms:TagResource", "kms:UntagResource", "kms:ScheduleKeyDeletion", "kms:CancelKeyDeletion"]
+    sid       = "EnableRootAccountAccess"
+    effect    = "Allow"
+    actions   = ["kms:Create*", "kms:Describe*", "kms:List*", "kms:Put*", "kms:Update*", "kms:Revoke*", "kms:Disable*", "kms:Get*", "kms:Delete*", "kms:TagResource", "kms:UntagResource", "kms:ScheduleKeyDeletion", "kms:CancelKeyDeletion"]
     resources = ["*"]
-  
+
     principals {
       type        = "AWS"
       identifiers = ["arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"]
@@ -50,8 +50,8 @@ data "aws_iam_policy_document" "waf_logs_kms" {
   }
 
   statement {
-    sid     = "AllowWAFLogDeliveryEncryption"
-    effect  = "Allow"
+    sid    = "AllowWAFLogDeliveryEncryption"
+    effect = "Allow"
     actions = [
       "kms:Encrypt*",
       "kms:Decrypt*",
