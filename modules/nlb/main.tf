@@ -70,8 +70,8 @@ resource "aws_eip" "this" {
 # Load Balancer
 # ==============
 
-resource "aws_lb" "this" {
 #trivy:ignore:AWS-0053 -- internet-facing NLB is the intended design (public static-IP front for the ALB)
+resource "aws_lb" "this" {
   name               = "${var.project_name}-nlb"
   load_balancer_type = "network"
   internal           = var.internal
