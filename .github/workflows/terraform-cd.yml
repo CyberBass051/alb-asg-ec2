@@ -8,6 +8,7 @@ on:
       - 'environments/dev/**'
       - 'environments/dev/backend.hcl'
       - 'modules/**'
+  workflow_dispatch:
       
 permissions:
   id-token: write
