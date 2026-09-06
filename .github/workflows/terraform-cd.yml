@@ -30,7 +30,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume:
-            arn:aws:iam::221717898536/alb-project-GitHubActions-TerraformCD
+            arn:aws:iam::221717898536:role/alb-project-GitHubActions-TerraformCD
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Setup Terraform
@@ -57,3 +57,5 @@ jobs:
         id: apply
         run: terraform apply -auto-approve tfplan
         working-directory: ${{ env.WORKING_DIR }}
+
+# hello

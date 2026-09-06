@@ -42,6 +42,17 @@ module "alb" {
   web_subnet_ids = values(module.vpc.web_subnet_ids)
   alb_sg_id      = module.security.alb_sg_id
 }
+
+module "asg" {
+  source = "../../modules/compute_asg"
+
+  project_name        = "alb-project"
+  region              = "us-east-1"
+  lb_target_group_arn = module.alb.lb_target_group_arn
+  web_sg_id           = module.security.web_sg_id
+  app_subnet_ids      = values(module.vpc.app_subnet_ids)
+}
+
 module "dns_acm" {
   source = "../../modules/dns_acm"
 
@@ -50,6 +61,8 @@ module "dns_acm" {
   domain_name         = "cyberbass.live"
   lb_target_group_arn = module.alb.lb_target_group_arn
   lb_arn              = module.alb.lb_arn
+  nlb_dns_name        = module.nlb.nlb_dns_name
+  nlb_zone_id         = module.nlb.nlb_zone_id
 }
 
 module "waf" {
@@ -57,4 +70,35 @@ module "waf" {
   project_name = "alb-project"
   owner        = "Pietro"
   alb_arn      = module.alb.lb_arn
+}
+
+module "nlb" {
+  source = "../../modules/nlb"
+
+  project_name = "alb-project"
+  vpc_cidr     = "10.32.0.0/16" 
+  vpc_id       = module.vpc.vpc_id
+  subnet_ids   = values(module.vpc.web_subnet_ids)
+
+  internal          = false
+  allocate_eips     = true
+  enable_cross_zone = true
+
+  listener_port     = 443
+  listener_protocol = "TCP"
+
+
+  client_cidrs     = ["0.0.0.0/0"]
+  target_mode      = "alb"
+  target_port      = 443
+  target_protocol  = "TCP"
+  alb_arn          = module.alb.lb_arn
+  alb_listener_arn = module.dns_acm.https_listener_arn
+
+  health_check = {
+    protocol = "HTTPS"
+    port     = "443"
+    path     = "/"
+    matcher  = "200-399"
+  }
 }
