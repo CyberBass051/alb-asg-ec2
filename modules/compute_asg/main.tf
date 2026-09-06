@@ -6,13 +6,14 @@ data "aws_ami" "al2023" {
   owners      = ["amazon"]
   filter {
     name   = "name"
-    values = ["al-2023-ami-*-x86_64"]
+    values = ["al2023-ami-*-x86_64"]
   }
 }
 
+
 resource "aws_launch_template" "web" {
   name_prefix            = "${var.project_name}-web-"
-  image_id               = data.aws_ami_al2023.id
+  image_id               = data.aws_ami.al2023.id
   instance_type          = "t3.micro"
   vpc_security_group_ids = [var.web_sg_id]
   user_data              = base64encode(file("${path.module}/user-data.sh"))
@@ -67,6 +68,6 @@ resource "aws_autoscaling_policy" "cpu_scaling_policy" {
       predefined_metric_type = "ASGAverageCPUUtilization"
     }
 
-    taget_value = 50.0
+    target_value = 50.0
   }
 }

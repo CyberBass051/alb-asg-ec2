@@ -61,3 +61,18 @@ resource "aws_lb_listener" "https" {
     target_group_arn = var.lb_target_group_arn
   }
 }
+
+# ===========
+# NLB Record
+# ===========
+
+resource "aws_route53_record" "nlb" {
+  zone_id = data.aws_route53_zone.cyberbass.zone_id
+  name    = "nlb.cyberbass.live"
+  type    = "A"
+  alias {
+    name                   = var.nlb_dns_name
+    zone_id                = var.nlb_zone_id
+    evaluate_target_health = true
+  }
+}

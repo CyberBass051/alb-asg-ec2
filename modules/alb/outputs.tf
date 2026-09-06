@@ -5,3 +5,7 @@ output "lb_target_group_arn" {
 output "lb_arn" {
   value = aws_lb.main_alb.arn
 }
+
+output "listener_arn" {
+  value = aws_lb_listener.http.arn
+}

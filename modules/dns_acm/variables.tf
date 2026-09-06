@@ -17,3 +17,11 @@ variable "lb_target_group_arn" {
 variable "lb_arn" {
   type = string
 }
+
+variable "nlb_dns_name" {
+  type = string
+}
+
+variable "nlb_zone_id" {
+  type = string
+}
