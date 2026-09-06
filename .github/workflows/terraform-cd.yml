@@ -1,27 +1,25 @@
-name: Terraform CI
+name: Terraform CD
 
 on:
-  pull_request:
+  push:
     branches:
       - main
     paths:
-      - '**.tf'
-      - '**.hcl'
-      - '.github/workflows/terraform-ci.yml'
+      - 'environments/dev/**'
+      - 'environments/dev/backend.hcl'
 
 permissions:
   id-token: write
   contents: read
-  pull-requests: write
 
-env:
+env: 
   TF_VERSION: '1.9.0'
   AWS_REGION: 'us-east-1'
   WORKING_DIR: 'environments/dev'
 
 jobs:
-  terraform-ci:
-    name: Terraform CI
+  terraform-cd:
+    name: Terraform Apply (CD)
     runs-on: ubuntu-latest
 
     steps:
@@ -32,18 +30,13 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume:
-            arn:aws:iam::221717898536:role/alb-project-GitHubActions-TerraformCI
+            arn:aws:iam::221717898536/alb-project-GitHubActions-TerraformCD
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ env.TF_VERSION }}
-
-      - name: Terraform Format
-        id: fmt
-        run: terraform fmt -recursive
-        working-directory: ${{ env.WORKING_DIR }}
 
       - name: Terraform Init
         id: init
@@ -55,27 +48,12 @@ jobs:
         run: terraform validate
         working-directory: ${{ env.WORKING_DIR }}
 
-      - name: Run Checkov
-        uses: bridgecrewio/checkov-action@v12
-        with:
-          directory: .
-          framework: terraform
-          softfail: false
-          skip_check: CKV_AWS_356,CKV_AWS_109,CKV_AWS_338,CKV_AWS_111,CKV2_AWS_5,CKV_AWS_260,CKV_AWS_150,CKV_AWS_144,CKV_AWS_145,CKV_AWS_18,CKV2_AWS_28,CKV_AWS_378,CKV2_AWS_61,CKV2_AWS_62,CKV_AWS_19,CKV2_AWS_6,CKV_AWS_91,CKV2_AWS_19
-
-          
-      - name: Run Trivy
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: config
-          scan-ref: .
-          exit-code: 1
-          severity: 'HIGH,CRITICAL'
-          
-
       - name: Terraform Plan
         id: plan
         run: terraform plan -no-color -out=tfplan
         working-directory: ${{ env.WORKING_DIR }}
 
-# hello
+      - name: Terraform Apply
+        id: apply
+        run: terraform apply -auto-approve tfplan
+        working-directory: ${{ env.WORKING_DIR }}
