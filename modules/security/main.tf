@@ -33,7 +33,7 @@ resource "aws_security_group_rule" "alb_allow_https" {
   to_port           = 443
   protocol          = "tcp"
 }
-
+# 
 resource "aws_security_group_rule" "alb_egress_to_instances" {
   type                     = "egress"
   security_group_id        = aws_security_group.alb_sg.id
