@@ -14,6 +14,6 @@ output "app_subnet_ids" {
   description = "IDs of all the app-tier subnets, keyed by AZ"
   value = {
     for k, v in local.subnets : v.az => aws_subnet.this[k].id
-    if v.tier == "web"
+    if v.tier == "app"
   }
 }
