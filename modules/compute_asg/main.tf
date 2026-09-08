@@ -10,6 +10,28 @@ data "aws_ami" "al2023" {
   }
 }
 
+resource "aws_iam_role" "web" {
+  name = "${var.project_name}-web-instance-role"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Principal = { Service = "ec2.amazonaws.com" }
+      Action    = "sts:AssumeRole"
+    }]
+    tags = { Project = var.project_name, ManagedBy = "terraform" }
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ssm" {
+  role       = aws_iam_role.web.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_iam_instance_profile" "web" {
+  name = "${var.project_name}-web-instance-profile"
+  role = aws_iam_role.web.name
+}
 
 resource "aws_launch_template" "web" {
   name_prefix            = "${var.project_name}-web-"
@@ -22,6 +44,11 @@ resource "aws_launch_template" "web" {
     http_tokens                 = "required"
     http_put_response_hop_limit = 1
   }
+
+  iam_instance_profile {
+    arn = aws_iam_instance_profile.web.arn
+  }
+
 }
 
 resource "aws_autoscaling_group" "web" {
