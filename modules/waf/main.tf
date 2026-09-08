@@ -40,7 +40,7 @@ data "aws_iam_policy_document" "waf_logs_kms" {
   statement {
     sid       = "EnableRootAccountAccess"
     effect    = "Allow"
-    actions   = ["kms:*"] 
+    actions   = ["kms:*"]
     resources = ["*"]
 
     principals {

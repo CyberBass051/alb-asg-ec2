@@ -76,7 +76,7 @@ module "nlb" {
   source = "../../modules/nlb"
 
   project_name = "alb-project"
-  vpc_cidr     = "10.32.0.0/16" 
+  vpc_cidr     = "10.32.0.0/16"
   vpc_id       = module.vpc.vpc_id
   subnet_ids   = values(module.vpc.web_subnet_ids)
 
