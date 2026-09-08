@@ -38,7 +38,7 @@ resource "aws_security_group_rule" "alb_egress_to_instances" {
   type                     = "egress"
   security_group_id        = aws_security_group.alb_sg.id
   description              = "Allow ALB to reach web instances (health checks + traffic)"
-  destination_security_group_id = aws_security_group.web_sg.id
+  source_security_group_id = aws_security_group.web_sg.id
   from_port                = 80
   to_port                  = 80
   protocol                 = "tcp"
