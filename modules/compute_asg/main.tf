@@ -19,8 +19,8 @@ resource "aws_iam_role" "web" {
       Principal = { Service = "ec2.amazonaws.com" }
       Action    = "sts:AssumeRole"
     }]
-    tags = { Project = var.project_name, ManagedBy = "terraform" }
   })
+  tags = { Project = var.project_name, ManagedBy = "terraform" }
 }
 
 resource "aws_iam_role_policy_attachment" "ssm" {
